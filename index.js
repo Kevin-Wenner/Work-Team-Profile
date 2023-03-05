@@ -5,9 +5,9 @@ const Employee = require('./lib/Employee');
 const Engineer = require('./lib/Engineer');
 const Intern = require('./lib/Intern');
 const Manager = require('./lib/Manager');
-const containerEl = document.getElementById('container');
-const workTeamArray = [];
+const generateHTML = require('./src/gnerateHTML');
 
+const workTeamArray = [];
 // prompts for Team members
 const role = [
     {
@@ -61,17 +61,23 @@ const managerQuestions = [
     }
 ]
 
+const add = [
+    {
+        type: 'list',
+        name: 'continue',
+        message: "Do you wish to add another employee?",
+        choices: ["yes", "no"]
+    }
+]
+
 // intion function
 async function init() {
     return inquire
         .prompt(role)
         .then((response) => {
-            console.log(response);
             switch (response.role) {
                 case "Engineer":
-                        // console.log("new engineer");
                         questions = employeeQuestions.concat(engineerQuestions);
-                        // console.log(questions);
                         getDetails(questions);
                     break;
                 case "Intern":
@@ -90,6 +96,7 @@ async function init() {
                 default:
                     break;
             }
+
         })
         .catch((err) => {
             console.log(err);
@@ -101,65 +108,24 @@ async function getDetails(questions){
         .prompt(questions)
         .then((response) => {
             workTeamArray.push(response);
-            console.log(workTeamArray);
-            workTeamArray.forEach(member => {     
-                if (member.github) {
-                    //engineer card
-                    console.log(`Engineer ${member}`);
-                    containerEl.innerHTML += `
-                    <div class="card" style="width: 18rem;">
-                        <div class="card-body">
-                            <h5 class="card-title">${member.name}</h5>
-                            <p class="card-text">Engineer</p>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">${member.id}</li>
-                            <li class="list-group-item"><a href="mailto:${member.email}">Email: </a></li>
-                            <li class="list-group-item"><a href="https://github.com/${member.github}">github:</a></li>
-                        </ul>
-                    </div>
-                    `
-                }else if(member.school){
-                    //Intern card
-                    console.log(`Intern ${member}`);
-                    containerEl.innerHTML += `
-                    <div class="card" style="width: 18rem;">
-                        <div class="card-body">
-                            <h5 class="card-title">${member.name}</h5>
-                            <p class="card-text">Engineer</p>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">${member.id}</li>
-                            <li class="list-group-item"><a href="mailto:${member.email}">Email: </a></li>
-                            <li class="list-group-item"><a href="https://github.com/${member.github}">github:</a></li>
-                        </ul>
-                    </div>
-                    `
-                } else if(member.officeNumber){
-                    //Manager card
-                    console.log(`Manager ${member}`);
-                    containerEl.innerHTML += `
-                    <div class="card" style="width: 18rem;">
-                        <div class="card-body">
-                            <h5 class="card-title">${member.name}</h5>
-                            <p class="card-text">Engineer</p>
-                        </div>
-                        <ul class="list-group list-group-flush">
-                            <li class="list-group-item">${member.id}</li>
-                            <li class="list-group-item"><a href="mailto:${member.email}">Email: </a></li>
-                            <li class="list-group-item"><a href="https://github.com/${member.github}">github:</a></li>
-                        </ul>
-                    </div>
-                    `
-                }          
-            });
+            const html = generateHTML(workTeamArray)
+            fs.writeFile('./dist/index.html', html, (err) => err ? console.log(err) : console.log('html created'));
+            newEmployee();          
         })
         .catch((err) => {
             console.log(err);
         })
 }
 
-
-
+async function newEmployee(){
+    return inquire
+        .prompt(add)
+        .then((response) => {
+            console.log(response);
+            if (response.continue === "yes") {
+                init();
+            }
+        })
+}
 init();
-
+exports.workTeamArray;
